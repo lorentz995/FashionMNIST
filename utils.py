@@ -2,11 +2,16 @@ import matplotlib.pyplot as plt
 from itertools import chain
 from sklearn.metrics import confusion_matrix
 import seaborn as sns
-import numpy as np
 import torch
 from torch.autograd import Variable
+import os
 
 classes = ('T-Shirt', 'Trouser', 'Pullover', 'Dress', 'Coat', 'Sandal', 'Shirt', 'Sneaker', 'Bag', 'Ankle Boot')
+
+
+def create_folders():
+    if not os.path.exists('./images'):
+        os.mkdir('./images')
 
 
 def plot_train_val_test_loss(epochs, train_losses, valid_losses, test_epoch, test_loss):
@@ -17,6 +22,7 @@ def plot_train_val_test_loss(epochs, train_losses, valid_losses, test_epoch, tes
     plt.plot(test_epoch, test_loss, 'r^', label="Test loss")
     plt.legend(frameon=False)
     plt.title("Training and validation losses")
+    plt.savefig('./images/train_val_loss.png', bbox_inches='tight')
     plt.show()
 
 
@@ -27,6 +33,7 @@ def plot_val_test_accuracy(epochs, valid_accuracy, test_epoch, test_accuracy):
     plt.plot(test_epoch, test_accuracy, 'r^', label="Test accuracy")
     plt.legend(frameon=False)
     plt.title("Validation accuracy")
+    plt.savefig('./images/train_val_accuracy.png', bbox_inches='tight')
     plt.show()
 
 
@@ -54,13 +61,20 @@ def plot_acc_for_each_class(args, model, test_loader, device):
         classes_accuracy.append(class_correct[i] * 100 / total_correct[i])
         print("Accuracy of {}: {:.2f}%".format(classes[i], class_correct[i] * 100 / total_correct[i]))
 
-    fig4 = plt.figure()
-    plt.bar(classes, classes_accuracy,
-            color=['blue', 'orange', 'green', 'red', 'purple', 'brown', 'pink', 'gray', 'olive', 'cyan'])
-    plt.xticks(np.arange(len(classes)), classes)
-    # for i, v in enumerate(classes_accuracy):
-    #    ax.text(v+3, i +.25, str(v), color='blue', fontweigth='bold')
-    plt.title("Accuracy for each class")
+    fig, ax = plt.subplots()
+    bar_plot = plt.bar(classes, classes_accuracy, tick_label=classes,
+                       color=['blue', 'orange', 'green', 'red', 'purple', 'brown', 'pink', 'gray', 'olive', 'cyan'])
+
+    def add_bar_value():
+        for idx, rect in enumerate(bar_plot):
+            height = rect.get_height()
+            ax.text(rect.get_x() + rect.get_width() / 2., 1.05 * height, classes_accuracy[idx], ha='center',
+                    va='bottom', rotation=0)
+
+    add_bar_value()
+    plt.ylim(0, 115)
+    plt.title("Accuracy for each class [%]")
+    plt.savefig('./images/acc_per_class.png', bbox_inches='tight')
     plt.show()
 
 
@@ -81,4 +95,5 @@ def plot_confusion_matrix(targets, predicted):
     ax.set_ylabel('True targets')
     ax.xaxis.set_ticklabels(classes, rotation=90)
     ax.yaxis.set_ticklabels(classes, rotation=0)
+    plt.savefig('./images/confusion_matrix.png', bbox_inches='tight')
     plt.show()

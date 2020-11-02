@@ -1,5 +1,5 @@
 from FashionMNIST.dataset import Dataset
-from FashionMNIST.net import FashionNet1
+from FashionMNIST.net import FashionNet1, FashionNet2, DeeperFashionNet
 import torch
 import torch.optim as optim
 
@@ -11,7 +11,7 @@ class Solver:
         # Use CUDA if available, otherwise use CPU
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         print("\nDevice: {}\n".format(self.device))
-        self.model = FashionNet1()
+        self.model = DeeperFashionNet()
         self.model.to(self.device)
         print(self.model)
 

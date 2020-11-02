@@ -2,6 +2,7 @@ import torch
 import torchvision
 import torchvision.transforms as transforms
 import matplotlib.pyplot as plt
+from FashionMNIST.utils import create_folders
 
 
 class Dataset:
@@ -18,6 +19,7 @@ class Dataset:
                                                               num_workers=4)
 
         # Showing some images of the dataset with the associated labels
+        create_folders()
         classes = ('T-Shirt', 'Trouser', 'Pullover', 'Dress', 'Coat', 'Sandal', 'Shirt', 'Sneaker', 'Bag', 'Ankle Boot')
         n_images = args.show_n_images
         images, labels = next(iter(self.train_valid_loader))
@@ -28,7 +30,7 @@ class Dataset:
             ax.set_title("{}".format(classes[labels[i]]), fontsize=15)
             plt.axis('off')
 
-        # plt.savefig('FashionMNIST_samples.png', bbox_inches='tight')
+        plt.savefig('./images/FashionMNIST_samples.png', bbox_inches='tight')
         plt.show()
 
         if args.norm_data:  # if true, train_valid dataset will be normalized for its own mean and std
