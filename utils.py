@@ -14,6 +14,20 @@ def create_folders():
         os.mkdir('./images')
 
 
+def plot_dataset(args, loader, title):
+    n_images = args.show_n_images
+    images, labels = next(iter(loader))
+    plt.figure(figsize=(12, 8), facecolor='w')
+    for i in range(n_images):
+        ax = plt.subplot(4, int(n_images / 3), i + 1)
+        plt.imshow(images[i, 0, :, :], vmin=0, vmax=1, cmap='gray')
+        ax.set_title("{}".format(classes[labels[i]]), fontsize=15)
+        plt.axis('off')
+
+    plt.savefig('./images/FashionMNIST_samples_{}.png'.format(title), bbox_inches='tight')
+    plt.show()
+
+
 def plot_train_val_test_loss(epochs, train_losses, valid_losses, test_epoch, test_loss):
     plt.figure(figsize=(8, 4))
     ax = range(1, epochs + 1)

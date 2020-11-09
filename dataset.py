@@ -1,59 +1,51 @@
 import torch
 import torchvision
 import torchvision.transforms as transforms
-import matplotlib.pyplot as plt
-from FashionMNIST.utils import create_folders
+from FashionMNIST.utils import create_folders, plot_dataset
+
+
+class Transformer(torch.utils.data.Dataset):
+    def __init__(self, dataset, transform):
+        self.dataset = dataset
+        self.transform = transform
+
+    def __getitem__(self, index):
+        img, target = self.dataset[index]
+        return self.transform(img), target
+
+    def __len__(self):
+        return len(self.dataset)
+
+
+def compute_mean_std(dataset, loader):
+    print("\nNormalizing training data for own mean and std")
+    n_pixels = len(dataset) * 28 * 28  # 28*28 is the height and width of the images inside
+    # our dataset
+    total_sum = 0
+    # Calculating mean
+    for batch in loader:
+        total_sum += batch[0].sum()
+    mean = total_sum / n_pixels
+    # Calculating std
+    sum_of_squared_error = 0
+    for batch in loader:
+        sum_of_squared_error += ((batch[0] - mean) ** 2).sum()
+    std = torch.sqrt(sum_of_squared_error / n_pixels)
+    print("Mean: {}, std: {}".format(mean, std))
+    return mean, std
 
 
 class Dataset:
     def __init__(self, args):
-        toTensor = transforms.Compose([transforms.ToTensor()])
         self.train_valid_dataset = torchvision.datasets.FashionMNIST(root=args.data_dir,
                                                                      train=True,
-                                                                     transform=toTensor,
+                                                                     transform=transforms.ToTensor(),
                                                                      download=True)
 
-        self.train_valid_loader = torch.utils.data.DataLoader(dataset=self.train_valid_dataset,
-                                                              batch_size=args.batch_size,
-                                                              shuffle=True,
-                                                              num_workers=4)
-
-        # Showing some images of the dataset with the associated labels
-        create_folders()
-        classes = ('T-Shirt', 'Trouser', 'Pullover', 'Dress', 'Coat', 'Sandal', 'Shirt', 'Sneaker', 'Bag', 'Ankle Boot')
-        n_images = args.show_n_images
-        images, labels = next(iter(self.train_valid_loader))
-        plt.figure(figsize=(12, 8), facecolor='w')
-        for i in range(n_images):
-            ax = plt.subplot(4, int(n_images / 3), i + 1)
-            plt.imshow(images[i, 0, :, :], vmin=0, vmax=1, cmap='gray')
-            ax.set_title("{}".format(classes[labels[i]]), fontsize=15)
-            plt.axis('off')
-
-        plt.savefig('./images/FashionMNIST_samples.png', bbox_inches='tight')
-        plt.show()
-
-        if args.norm_data:  # if true, train_valid dataset will be normalized for its own mean and std
-            print("\nNormalizing data for own mean and std\n")
-            n_pixels = len(self.train_valid_dataset) * 28 * 28  # 28*28 is the height and width of the images inside
-            # our dataset
-            total_sum = 0
-            # Calculating mean
-            for batch in self.train_valid_loader: total_sum += batch[0].sum()
-            mean = total_sum / n_pixels
-            # Calculating std
-            sum_of_squared_error = 0
-            for batch in self.train_valid_loader:
-                sum_of_squared_error += ((batch[0] - mean) ** 2).sum()
-            std = torch.sqrt(sum_of_squared_error / n_pixels)
-            print("Mean: {}, std: {}".format(mean, std))
-
-            # Normalizing the datasets with mean and std just calculated
-            self.normalized = transforms.Compose([transforms.ToTensor(), transforms.Normalize(mean, std)])
-            self.train_valid_dataset = torchvision.datasets.FashionMNIST(root=args.data_dir,
-                                                                         train=True,
-                                                                         transform=self.normalized,
-                                                                         download=True)
+        self.test_dataset = torchvision.datasets.FashionMNIST(root=args.data_dir,
+                                                              train=False,
+                                                              transform=transforms.ToTensor(),
+                                                              download=True)
 
         valid_ratio = 0.2
         # Split into training and validation sets
@@ -62,12 +54,25 @@ class Dataset:
                                                   [int((1.0 - valid_ratio) * len(self.train_valid_dataset)),
                                                    int(valid_ratio * len(self.train_valid_dataset))])
 
-        # Download the test dataset normalized
-        self.test_dataset = torchvision.datasets.FashionMNIST(root=args.data_dir,
-                                                              train=False,
-                                                              transform=self.normalized if args.norm_data else toTensor,
-                                                              download=True)
-        # Load the train, valid and test loaders normalized
+        # Showing some images of the dataset with the associated labels
+        create_folders()
+        self.train_loader = torch.utils.data.DataLoader(dataset=self.train_dataset,
+                                                        batch_size=args.batch_size,
+                                                        shuffle=True,  # reshuffles the data at every epoch
+                                                        num_workers=4,  # use 4 threads
+                                                        drop_last=True)
+        plot_dataset(args, self.train_loader, "Before_Normalization")
+
+        mean, std = compute_mean_std(self.train_dataset, self.train_loader)
+        # Normalizing the datasets with mean and std just calculated
+        self.transform = transforms.Normalize(mean, std)
+
+        # Transforms train and valid dataset into their normalized version
+        self.train_dataset = Transformer(self.train_dataset, self.transform)
+        self.valid_dataset = Transformer(self.valid_dataset, self.transform)
+        self.test_dataset = Transformer(self.test_dataset, self.transform)
+
+        # Create the data loader
         self.train_loader = torch.utils.data.DataLoader(dataset=self.train_dataset,
                                                         batch_size=args.batch_size,
                                                         shuffle=True,  # reshuffles the data at every epoch
@@ -85,6 +90,9 @@ class Dataset:
                                                        shuffle=False,
                                                        num_workers=4,
                                                        drop_last=True)
+
+        # Showing some images of the normalized dataset with the associated labels
+        plot_dataset(args, self.train_loader, "Post_Normalization")
 
     def __getitem__(self):
         print("The training set contains {} images in {} batches"

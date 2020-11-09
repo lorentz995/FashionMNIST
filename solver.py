@@ -11,7 +11,7 @@ class Solver:
         # Use CUDA if available, otherwise use CPU
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         print("\nDevice: {}\n".format(self.device))
-        self.model = DeeperFashionNet()
+        self.model = FashionNet2()
         self.model.to(self.device)
         print(self.model)
 
