@@ -1,12 +1,10 @@
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
-import torchvision.models as models
 
 
-class FashionNet1(nn.Module):
+class SimpleNet(nn.Module):
     def __init__(self):
-        super(FashionNet1, self).__init__()
+        super(SimpleNet, self).__init__()
 
         self.conv1 = nn.Sequential(
             nn.Conv2d(in_channels=1, out_channels=32, kernel_size=3, padding=1),
@@ -28,9 +26,9 @@ class FashionNet1(nn.Module):
         self.fc3 = nn.Linear(120, 10)  # 10 class --> out_features = 10
 
     def forward(self, x):
-        conv1 = self.conv1(x)
-        conv2 = self.conv2(conv1)
-        x = conv2.view(conv2.size(0), -1)
+        x = self.conv1(x)
+        x = self.conv2(x)
+        x = x.view(x.size(0), -1)  # Flatten Layer
         x = self.fc1(x)
         x = self.drop(x)
         x = self.fc2(x)
@@ -38,61 +36,81 @@ class FashionNet1(nn.Module):
         return out
 
 
-class FashionNet2(nn.Module):
+class DeepNet(nn.Module):
     def __init__(self):
-        super(FashionNet2, self).__init__()
+        super(DeepNet, self).__init__()
 
         self.conv1 = nn.Sequential(
-            nn.Conv2d(in_channels=1, out_channels=16, kernel_size=3, padding=1, stride=1),
-            nn.BatchNorm2d(16),
+            nn.Conv2d(in_channels=1, out_channels=64, kernel_size=3, padding=1, stride=1),  # 28*28
             nn.ReLU(),
-            nn.MaxPool2d(kernel_size=2, stride=2)
+            nn.BatchNorm2d(64)  # 28*28
         )
 
         self.conv2 = nn.Sequential(
-            nn.Conv2d(16, 32, 3, 1, 1),
-            nn.BatchNorm2d(32),
+            nn.Conv2d(in_channels=64, out_channels=64, kernel_size=3),  # 26*26
             nn.ReLU(),
-            nn.MaxPool2d(2)
+            nn.BatchNorm2d(64),
+            nn.MaxPool2d(kernel_size=2, stride=2)  # 13*13
         )
 
         self.conv3 = nn.Sequential(
-            nn.Conv2d(32, 64, 3, 2, 1),
-            nn.BatchNorm2d(64),
+            nn.Conv2d(in_channels=64, out_channels=128, kernel_size=3, padding=1, stride=1),  # 13*13
             nn.ReLU(),
-            nn.MaxPool2d(2)
+            nn.BatchNorm2d(128)  # 13*13
         )
 
-        self.fc1 = nn.Linear(in_features=64 * 4 * 4, out_features=600)
-        self.fc2 = nn.Linear(in_features=600, out_features=120)
-        self.fc3 = nn.Linear(in_features=120, out_features=10)
-        self.drop = nn.Dropout2d(0.25)
+        self.conv4 = nn.Sequential(
+            nn.Conv2d(in_channels=128, out_channels=128, kernel_size=3),  # 11*11
+            nn.ReLU(),
+            nn.BatchNorm2d(128),
+            nn.MaxPool2d(kernel_size=2, stride=2)  # 5*5?
+        )
 
+        self.conv5 = nn.Sequential(
+            nn.Conv2d(in_channels=128, out_channels=256, kernel_size=3, padding=1, stride=1),  # 5*5
+            nn.ReLU(),
+            nn.BatchNorm2d(256)  # 5*5
+        )
+
+        self.conv6 = nn.Sequential(
+            nn.Conv2d(in_channels=256, out_channels=256, kernel_size=3),  # 3*3
+            nn.ReLU(),
+            nn.BatchNorm2d(256),
+            nn.MaxPool2d(kernel_size=2, stride=2)  # 1*1
+        )
+
+        self.fc1 = nn.Linear(in_features=256*1*1, out_features=128)
+        self.fc2 = nn.Linear(in_features=128, out_features=64)
+        self.fc3 = nn.Linear(in_features=64, out_features=10)
         self.softmax = nn.Softmax(dim=1)
 
     def forward(self, x):
         x = self.conv1(x)
         x = self.conv2(x)
         x = self.conv3(x)
-        x = x.view(x.size(0), -1)
-        x = F.relu(self.fc1(x))
-        x = self.drop(x)
+        x = self.conv4(x)
+        x = self.conv5(x)
+        x = self.conv6(x)
+        x = x.view(x.size(0), -1)  # Flatten Layer
+        x = self.fc1(x)
         x = self.fc2(x)
-        x = F.relu(self.fc3(x))
+        x = self.fc3(x)
+
         out = self.softmax(x)
         return out
 
+
 class Swish(nn.Module):
-    def forward(selfself, input):
+    def forward(self, input):
         return input * torch.sigmoid(input)
 
     def __repr__(self):
         return self.__class__.__name__ + '()'
 
 
-class DeeperFashionNet(nn.Module):
+class SwishNet(nn.Module):
     def __init__(self):
-        super(DeeperFashionNet, self).__init__()
+        super(SwishNet, self).__init__()
 
         self.conv1 = nn.Conv2d(in_channels=1, out_channels=16, kernel_size=3, stride=1, padding=1)  # 28*28
         self.bn1 = nn.BatchNorm2d(16)
@@ -131,7 +149,7 @@ class DeeperFashionNet(nn.Module):
         x = self.swish3(x)
         x = self.mp3(x)
 
-        x = x.view(x.size(0), -1)
+        x = x.view(x.size(0), -1)  # Flatten Layer
         x = self.fc1(x)
         out = self.softmax(x)
 

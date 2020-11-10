@@ -1,5 +1,5 @@
 from FashionMNIST.dataset import Dataset
-from FashionMNIST.net import FashionNet1, FashionNet2, DeeperFashionNet
+from FashionMNIST.net import SimpleNet, DeepNet, SwishNet
 import torch
 import torch.optim as optim
 
@@ -11,14 +11,31 @@ class Solver:
         # Use CUDA if available, otherwise use CPU
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         print("\nDevice: {}\n".format(self.device))
-        self.model = FashionNet2()
+        if args.network == 'SimpleNet':
+            self.model = SimpleNet()
+        elif args.network == 'DeepNet':
+            self.model = DeepNet()
+        elif args.network == 'SwishNet':
+            self.model = SwishNet()
+        else:
+            print("Invalid Network, exit..")
+            exit(1)
+
         self.model.to(self.device)
         print(self.model)
 
         # Instantiating Cross Entropy loss and optimizer
         self.loss = None
         self.loss_function = torch.nn.CrossEntropyLoss()
-        self.optimizer = optim.Adam(self.model.parameters(), lr=args.learning_rate)  # Using Adam optimizer
+        if args.optimizer == 'Adam':
+            self.optimizer = optim.Adam(self.model.parameters(), lr=args.learning_rate)  # Using Adam optimizer
+        elif args.optimizer == 'SGD':
+            self.optimizer = optim.SGD(self.model.parameters(), lr=args.learning_rate, momentum=0.9)  # SGD optimizer
+        elif args.optimizer == 'Adagrad':
+            self.optimizer = optim.Adagrad(self.model.parameters(), lr=args.learning_rate)  # Using Adagrad optimizer
+        else:
+            print("Invalid optimizer, exit..")
+            exit(1)
 
     def __getitem__(self):
         return self.model, self.device, self.valid_loader, self.test_loader
