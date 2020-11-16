@@ -1,5 +1,5 @@
 from FashionMNIST.dataset import Dataset
-from FashionMNIST.net import SimpleNet, DeepNet, SwishNet
+from FashionMNIST.net import SimpleFashionNet, DeepFashionNet, SwishFashionNet
 import torch
 import torch.optim as optim
 
@@ -12,11 +12,11 @@ class Solver:
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         print("\nDevice: {}\n".format(self.device))
         if args.network == 'SimpleNet':
-            self.model = SimpleNet()
+            self.model = SimpleFashionNet()
         elif args.network == 'DeepNet':
-            self.model = DeepNet()
+            self.model = DeepFashionNet()
         elif args.network == 'SwishNet':
-            self.model = SwishNet()
+            self.model = SwishFashionNet()
         else:
             print("Invalid Network, exit..")
             exit(1)

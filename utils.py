@@ -36,6 +36,7 @@ def plot_train_val_test_loss(epochs, train_losses, valid_losses, test_epoch, tes
     plt.plot(test_epoch, test_loss, 'r^', label="Test loss")
     plt.legend(frameon=False)
     plt.title("Training and validation losses")
+    plt.xticks(ax)
     plt.savefig('./images/train_val_loss.png', bbox_inches='tight')
     plt.show()
 
@@ -47,6 +48,7 @@ def plot_val_test_accuracy(epochs, valid_accuracy, test_epoch, test_accuracy):
     plt.plot(test_epoch, test_accuracy, 'r^', label="Test accuracy")
     plt.legend(frameon=False)
     plt.title("Validation accuracy")
+    plt.xticks(ax)
     plt.savefig('./images/train_val_accuracy.png', bbox_inches='tight')
     plt.show()
 

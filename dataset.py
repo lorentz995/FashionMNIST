@@ -31,7 +31,7 @@ def compute_mean_std(dataset, loader):
     for batch in loader:
         sum_of_squared_error += ((batch[0] - mean) ** 2).sum()
     std = torch.sqrt(sum_of_squared_error / n_pixels)
-    print("Mean: {}, std: {}".format(mean, std))
+    print("Mean: {}, std: {}\n".format(mean, std))
     return mean, std
 
 
