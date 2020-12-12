@@ -39,12 +39,12 @@ class Dataset:
     def __init__(self, args):
         self.train_valid_dataset = torchvision.datasets.FashionMNIST(root=args.data_dir,
                                                                      train=True,
-                                                                     transform=transforms.ToTensor(),
+                                                                     transform=None,
                                                                      download=True)
 
         self.test_dataset = torchvision.datasets.FashionMNIST(root=args.data_dir,
                                                               train=False,
-                                                              transform=transforms.ToTensor(),
+                                                              transform=None,
                                                               download=True)
 
         valid_ratio = 0.2
@@ -61,11 +61,14 @@ class Dataset:
                                                         shuffle=True,  # reshuffles the data at every epoch
                                                         num_workers=4,  # use 4 threads
                                                         drop_last=True)
-        plot_dataset(args, self.train_loader, "Before_Normalization")
+        # plot_dataset(args, self.train_loader, "Before_Normalization")
 
-        mean, std = compute_mean_std(self.train_dataset, self.train_loader)
+        # mean, std = compute_mean_std(self.train_dataset, self.train_loader)
         # Normalizing the datasets with mean and std just calculated
-        self.transform = transforms.Normalize(mean, std)
+        self.transform = transforms.Compose([transforms.RandomHorizontalFlip(0.5),
+                                             transforms.RandomAffine(degrees=10, translate=(0.1, 0.1)),
+                                             transforms.ToTensor(),
+                                             transforms.Normalize(0.2864491641521454, 0.35342779755592346)])
 
         # Transforms train and valid dataset into their normalized version
         self.train_dataset = Transformer(self.train_dataset, self.transform)

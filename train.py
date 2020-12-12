@@ -11,12 +11,12 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--data_dir", type=str, default='./data')
     parser.add_argument("--log_dir", type=str, default="./logs")
-    parser.add_argument("--network", type=str, choices=['SimpleNet', 'DeepNet', 'SwishNet'], default='SimpleNet')
-    parser.add_argument("--optimizer", type=str, choices=['Adam', 'SGD', 'Adagrad'], default='Adam')
+    parser.add_argument("--network", type=str, choices=['SimpleNet', 'DeepNet', 'SwishNet'], default='SwishNet')
+    parser.add_argument("--optimizer", type=str, choices=['Adam', 'SGD', 'Adagrad'], default='Adagrad')
     parser.add_argument("--show_n_images", type=int, default=12)
-    parser.add_argument("--max_epochs", type=int, default=10)
+    parser.add_argument("--max_epochs", type=int, default=40)
     parser.add_argument("--batch_size", type=int, default=100)  # using mini-batches of 100 samples
-    parser.add_argument("--learning_rate", type=float, default=0.001)
+    parser.add_argument("--learning_rate", type=float, default=5e-3)
 
     args = parser.parse_args()
 
